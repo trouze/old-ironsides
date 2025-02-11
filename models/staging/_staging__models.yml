@@ -1,0 +1,71 @@
+version: 2
+
+models:
+  - name: stg_customers
+    group: customers_group
+    access: public
+    description: "test"
+    data_tests:
+      - is_model_fresh:
+          last_model_run_field: last_model_run
+          error_after: 1
+          time_part: minute
+    columns:
+      - name: customer_id
+        data_type: text
+        description: "test"
+        data_tests:
+          - not_null
+          - unique
+      - name: last_model_run
+        data_type: timestamp_ltz
+      - name: load_dts
+        data_type: date
+      - name: name
+        data_type: text
+      - name: signup_date
+        data_type: text
+  - name: stg_orders
+    description: ""
+    data_tests:
+      - is_model_fresh:
+          last_model_run_field: last_model_run
+          error_after: 24
+          time_part: hour
+  - name: stg_items
+    description: ""
+    data_tests:
+      - is_model_fresh:
+          last_model_run_field: last_model_run
+          error_after: 24
+          time_part: hour
+  - name: stg_products
+    description: ""
+    data_tests:
+      - is_model_fresh:
+          last_model_run_field: last_model_run
+          error_after: 24
+          time_part: hour
+  - name: stg_stores
+    description: ""
+    data_tests:
+      - is_model_fresh:
+          last_model_run_field: last_model_run
+          error_after: 24
+          time_part: hour
+  - name: stg_supplies
+    description: ""
+    data_tests:
+      - is_model_fresh:
+          last_model_run_field: last_model_run
+          error_after: 24
+          time_part: hour
+
+
+groups:
+  - name: customers_group
+    owner:
+      # 'name' or 'email' is required; additional properties allowed
+      email: finance@jaffleshop.com
+      slack: finance-data
+      github: finance-data-team

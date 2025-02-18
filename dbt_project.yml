@@ -56,3 +56,6 @@ seeds:
   dbt_sandbox:
     +enabled: false
     +schema: trouze
+
+vars:
+  schema_behavior: default

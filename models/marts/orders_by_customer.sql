@@ -11,6 +11,7 @@ final as (
         min(o.order_timestamp) as first_order_date,
         max(o.order_timestamp) as last_order_date,
         count(o.order_timestamp) as num_orders,
+        'test_col' as test_col,
         current_timestamp() as last_model_run
     from c
     left join o on o.customer_id = c.customer_id

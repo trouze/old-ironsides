@@ -68,7 +68,7 @@ vars:
 ## Model Construction
 As you build your incremental model, you'll want to add a between clause that leverages macros defined in this package like:
 
-```
+```sql
 with raw_orders as (
   
   select * from {{ source('jaffle_shop', 'raw_orders') }}

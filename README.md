@@ -3,7 +3,7 @@
 ## Package Install
 To install this package, add the following to your packages.yml:
 
-```
+```yaml
 packages:
   - git: "https://github.com/trouze/old-ironsides.git"
     revision: high-watermark
@@ -12,7 +12,7 @@ packages:
 ## Model Config
 And then to run the process with an incremental model add the pre and post-hooks:
 
-```
+```sql
 {{ config(
     hwm_field='load_dts',
     materialized='incremental',
@@ -29,7 +29,7 @@ as that's the column this process will use across *all* refs.
 
 For a DRY-er setup, you can add the pre and post hooks to your `dbt_project.yml`:
 
-```
+```yaml
 name: 'dbt_sandbox'
 
 models:
@@ -41,7 +41,7 @@ models:
 
 And then your model configs can simply be:
 
-```
+```sql
 {{ config(
     hwm_field='load_dts',
     materialized='incremental',
@@ -52,7 +52,7 @@ And then your model configs can simply be:
 ## Project Vars
 Finally, this process allows you to configure the schema and table name for your high watermark table via project vars. You can define them as so:
 
-```
+```yaml
 name: 'dbt_sandbox'
 
 models:

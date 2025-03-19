@@ -1,4 +1,4 @@
-{% macro update_job_param(success) %}
+{% macro update_job_param(success=true) %}
 
   {% if execute %}
     {% set upstream_nodes = graph.nodes[model.unique_id].depends_on.nodes %}

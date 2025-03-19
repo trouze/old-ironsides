@@ -3,7 +3,7 @@
   create table {{ target.database }}.{{ var('watermark_schema', 'public') }}.{{ var('watermark_table', 'dbt_high_watermark') }} if not exists (
     target_name text not null,
     source_name text not null,
-    invocation_id binary(16) not null,
+    invocation_id text not null,
     complete boolean,
     source_timestamp timestamp_ntz(9) not null)
 
@@ -16,7 +16,7 @@
     create table {{ target.database }}.{{ var('watermark_schema', 'public') }}.hwm_tmp_{{ thread_id.split(' ')[0] | replace('-', '_') | lower }} (
     target_name text not null,
     source_name text not null,
-    invocation_id binary(16) not null,
+    invocation_id text not null,
     complete boolean,
     source_timestamp timestamp_ntz(9) not null
     )
@@ -25,31 +25,19 @@
 {% endmacro %}
 
 
-{% macro get_previous_hwm(arg1, arg2=none) %}
+{% macro get_current_hwm(relation_obj) %}
+  {{ return(adapter.dispatch('get_hwm', project_name)(true, relation_obj)) }}
+{% endmacro %}
+
+
+{% macro get_previous_hwm(relation_obj) %}
+  {{ return(adapter.dispatch('get_hwm', project_name)(false, relation_obj)) }}
+{% endmacro %}
+
+
+{% macro snowflake__get_hwm(current, relation_obj) %}
   {% if execute %}
-    select max(source_timestamp) from {{ target.database }}.public.dbt_high_watermark
-    where target_name = '{{ model.unique_id }}'
-      and source_name = '{{ get_node_unique_id(arg1, arg2) }}'
-      and complete = true
-  {% elif not execute %}
-    '2020-01-01'
-  {% endif %}
-{% endmacro %}
-
-
-{% macro get_current_hwm(arg1, arg2=none) %}
-  {{ return(adapter.dispatch('get_hwm', project_name)(true, arg1, arg2)) }}
-{% endmacro %}
-
-
-{% macro get_previous_hwm(arg1, arg2=none) %}
-  {{ return(adapter.dispatch('get_hwm', project_name)(false, arg1, arg2)) }}
-{% endmacro %}
-
-
-{% macro get_hwm(current, arg1, arg2=none) %}
-  {% if execute %}
-    {% set source_unique_id = get_node_unique_id() %}
+    {% set source_unique_id = get_node_unique_id_by_relation(relation_obj) %}
   {% else %}
     {% set source_unique_id = '' %}
   {% endif %}
@@ -72,16 +60,32 @@
 {% endmacro %}
 
 
-{% macro get_node_unique_id(arg1, arg2) %}
-    {% if arg2 is none %}
-        {# Single argument passed, assume it's a model #}
-        {% set model_name = arg1 %}
+{% macro get_node_unique_id_by_relation(relation_obj) %}
+    {% set source_unique_id = none %}
+    
+    {% if execute %}
+        {% set database = relation_obj.database %}
+        {% set schema = relation_obj.schema %}
+        {% set identifier = relation_obj.identifier %}
+        {# First, loop through models in graph.nodes #}
+        {% for node in graph.nodes %}
+            {% if node.database == database and node.schema == schema and node.identifier == identifier %}
+                {% set source_unique_id = node.unique_id %}
+                {% break %}
+            {% endif %}
+        {% endfor %}
 
-        {{ return() }}
-    {% else %}
-        {# Two arguments passed, assume it's a source #}
-        {% set source_name = arg1 %}
-        {% set table_name = arg2 %}
-        {{ return() }}
+        {# If not found in models, search through sources in graph.sources #}
+        {% if source_unique_id is none %}
+            {% for source in graph.sources %}
+                {% if source.database == database and source.schema == schema and source.identifier == identifier %}
+                    {% set source_unique_id = source.unique_id %}
+                    {% break %}
+                {% endif %}
+            {% endfor %}
+        {% endif %}
     {% endif %}
+    
+    {# Return the unique ID if found, otherwise return a default or None #}
+    {{ return(source_unique_id) }}
 {% endmacro %}

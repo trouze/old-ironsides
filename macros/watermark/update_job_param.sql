@@ -33,7 +33,7 @@
         {{ success }} as complete,
         source_timestamp
       from {{ target.database }}.public.hwm_tmp_{{ thread_id.split(' ')[0] | replace('-', '_') | lower }}
-      where success = false
+      where complete = false
         and source_name = '{{ source_name }}'
         and target_name = '{{ model.unique_id }}'
       order by source_timestamp desc

@@ -19,25 +19,41 @@
   {% endif %}
 
   {% for upstream_node in upstream_nodes %}
+
     {% set model_node = graph.nodes.get(upstream_node) %}
     {% set source_node = graph.sources.get(upstream_node) %}
 
     {% if model_node and model_node.resource_type == 'model' %}
+
       {% set hwm_field = model.config.get('hwm_field', 'updated_at') %}
       {% set upstream_node_db = model_node.database %}
       {% set upstream_node_schema = model_node.schema %}
       {% set upstream_node_alias = model_node.alias %}
+
     {% elif source_node and source_node.resource_type == 'source' %}
+
       {% set loaded_at_field = source_node.loaded_at_field %}
+
       {% if loaded_at_field %}
         {% set hwm_field = loaded_at_field %}
       {% else %}
         {% set hwm_field = model.config.get('hwm_field', 'updated_at')%}
       {% endif %}
+
       {% set upstream_node_db = source_node.database %}
       {% set upstream_node_schema = source_node.schema %}
-      {% set upstream_node_alias = source_node.alias %}
+      {% set upstream_node_alias = source_node.identifier %}
     {% endif %}
+
+    {# Now we dynamically get the relation using ref() or source() #}
+    {% if model_node %}
+      {# Use ref for models #}
+      {% set upstream_node_relation = ref(model_node.name) %}
+    {% elif source_node %}
+      {# Use source for sources #}
+      {% set upstream_node_relation = source(source_node.source_name, source_node.name) %}
+    {% endif %}
+
     {% set job_param_sql %}
       insert into {{ target.database }}.public.hwm_tmp_{{ thread_id.split(' ')[0] | replace('-', '_') | lower }} (
         target_name,
@@ -52,7 +68,7 @@
         '{{ invocation_id }}' as invocation_id,
         {{ success }} as complete,
         max({{ hwm_field }}) as source_timestamp
-      from {{ upstream_node_db }}.{{ upstream_node_schema }}.{{ upstream_node_alias }}
+      from {{ upstream_node_relation }}
     {% endset %}
     {% do run_query(job_param_sql) %}
   {% endfor %}

@@ -13,7 +13,7 @@
 {% macro create_tmp_hwm_table() %}
   {# dbt reuses snowflake sessions across models, one per thread #}
   {% set create_tmp_hwm_table %}
-    create table {{ target.database }}.{{ var('watermark_schema', 'public') }}.hwm_tmp_{{ thread_id.split(' ')[0] | replace('-', '_') | lower }} (
+    create temporary table {{ target.database }}.{{ var('watermark_schema', 'public') }}.hwm_tmp_{{ thread_id.split(' ')[0] | replace('-', '_') | lower }} (
     target_name text not null,
     source_name text not null,
     invocation_id text not null,

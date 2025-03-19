@@ -73,7 +73,8 @@ with raw_orders as (
   
   select * from {{ source('jaffle_shop', 'raw_orders') }}
   {% if is_incremental() %}
-  where load_dts between ({{ get_previous_hwm(source('jaffle_shop', 'raw_orders')) }}) and ({{ get_current_hwm(source('jaffle_shop', 'raw_orders')) }})
+  where load_dts between ({{ get_previous_hwm(source('jaffle_shop', 'raw_orders')) }})
+    and ({{ get_current_hwm(source('jaffle_shop', 'raw_orders')) }})
   {% endif %}
 
 ),
@@ -81,7 +82,8 @@ with raw_orders as (
 stg_customers as (
   select * from {{ ref('stg_customers') }}
   {% if is_incremental() %}
-  where load_dts between ({{ get_previous_hwm(ref('stg_customers')) }}) and ({{ get_current_hwm(ref('stg_customers')) }})
+  where load_dts between ({{ get_previous_hwm(ref('stg_customers')) }})
+    and ({{ get_current_hwm(ref('stg_customers')) }})
   {% endif %}
 ),
 

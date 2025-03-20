@@ -34,7 +34,7 @@
 
       {% set loaded_at_field = source_node.loaded_at_field %}
 
-      {% if loaded_at_field %}
+      {% if model.config.get('use_loaded_at', false) and loaded_at_field %}
         {% set hwm_field = loaded_at_field %}
       {% else %}
         {% set hwm_field = model.config.get('hwm_field', 'updated_at')%}

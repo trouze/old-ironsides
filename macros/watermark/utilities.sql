@@ -1,6 +1,6 @@
 {% macro create_hwm_table() %}
 
-  create table {{ target.database }}.{{ var('watermark_schema', 'public') }}.{{ var('watermark_table', 'dbt_high_watermark') }} if not exists (
+  create table {{ var('watermark_database', target.database) }}.{{ var('watermark_schema', 'public') }}.{{ var('watermark_table', 'dbt_high_watermark') }} if not exists (
     target_name text not null,
     source_name text not null,
     invocation_id text not null,
@@ -13,7 +13,7 @@
 {% macro create_tmp_hwm_table() %}
   {# dbt reuses snowflake sessions across models, one per thread #}
   {% set create_tmp_hwm_table %}
-    create temporary table {{ target.database }}.{{ var('watermark_schema', 'public') }}.hwm_tmp_{{ thread_id.split(' ')[0] | replace('-', '_') | lower }} (
+    create temporary table {{ var('watermark_database', target.database) }}.{{ var('watermark_schema', 'public') }}.hwm_tmp_{{ thread_id.split(' ')[0] | replace('-', '_') | lower }} (
     target_name text not null,
     source_name text not null,
     invocation_id text not null,
@@ -43,14 +43,14 @@
   {% endif %}
   {% if current %}
 
-    select max(source_timestamp) from {{ target.database }}.public.hwm_tmp_{{ thread_id.split(' ')[0] | replace('-', '_') | lower }}
+    select max(source_timestamp) from {{ var('watermark_database', target.database) }}.public.hwm_tmp_{{ thread_id.split(' ')[0] | replace('-', '_') | lower }}
     where target_name = '{{ model.unique_id }}'
       and source_name = '{{ source_unique_id }}'
 
     
   {% else %}
 
-    select max(source_timestamp) from {{ target.database }}.{{ var('watermark_schema', 'public') }}.{{ var('watermark_table', 'dbt_high_watermark') }}
+    select max(source_timestamp) from {{ var('watermark_database', target.database) }}.{{ var('watermark_schema', 'public') }}.{{ var('watermark_table', 'dbt_high_watermark') }}
     where target_name = '{{ model.unique_id }}'
       and source_name = '{{ source_unique_id }}'
       and complete = true

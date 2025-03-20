@@ -34,8 +34,8 @@ name: 'dbt_sandbox'
 
 models:
   dbt_sandbox:
-    +pre-hook: ["{{ set_job_param() }}"]
-    +post-hook: ["{{ update_job_param() }}"]
+    +pre-hook: ["{{ set_job_param() }} if model.config.materialized == 'incremental'"]
+    +post-hook: ["{{ update_job_param() }} if model.config.materialized == 'incremental'"]
 
 ```
 
@@ -57,8 +57,8 @@ name: 'dbt_sandbox'
 
 models:
   dbt_sandbox:
-    +pre-hook: ["{{ set_job_param() }}"]
-    +post-hook: ["{{ update_job_param() }}"]
+    +pre-hook: ["{{ set_job_param() }} if model.config.materialized == 'incremental'"]
+    +post-hook: ["{{ update_job_param() }} if model.config.materialized == 'incremental'"]
 
 vars:
   watermark_database: my_db # defaults to target.database

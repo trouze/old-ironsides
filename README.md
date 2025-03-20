@@ -61,6 +61,7 @@ models:
     +post-hook: ["{{ update_job_param() }}"]
 
 vars:
+  watermark_database: my_db # defaults to target.database
   watermark_schema: public
   watermark_table: dbt_high_watermark
 ```

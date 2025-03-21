@@ -32,7 +32,7 @@
         invocation_id,
         {{ success }} as complete,
         source_timestamp
-      from {{ var('watermark_database', target.database) }}.public.hwm_tmp_{{ thread_id.split(' ')[0] | replace('-', '_') | lower }}
+      from {{ var('watermark_database', target.database) }}.{{ var('watermark_schema', 'public') }}.hwm_tmp_{{ thread_id.split(' ')[0] | replace('-', '_') | lower }}
       where complete = false
         and source_name = '{{ source_name }}'
         and target_name = '{{ model.unique_id }}'

@@ -43,7 +43,7 @@
   {% endif %}
   {% if current %}
 
-    select max(source_timestamp) from {{ var('watermark_database', target.database) }}.public.hwm_tmp_{{ thread_id.split(' ')[0] | replace('-', '_') | lower }}
+    select max(source_timestamp) from {{ var('watermark_database', target.database) }}.{{ var('watermark_schema', 'public') }}.hwm_tmp_{{ thread_id.split(' ')[0] | replace('-', '_') | lower }}
     where target_name = '{{ model.unique_id }}'
       and source_name = '{{ source_unique_id }}'
 

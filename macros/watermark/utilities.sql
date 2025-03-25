@@ -1,10 +1,18 @@
 {% macro create_hwm_table() %}
+
   create table {{ var('watermark_database', target.database) }}.{{ generate_schema_name(custom_schema_name=var('watermark_schema', 'public'), node=node) }}.{{ var('watermark_table', 'dbt_high_watermark') }} if not exists (
     target_name text not null,
     source_name text not null,
     invocation_id text not null,
     complete boolean,
     source_timestamp timestamp_ntz(9) not null)
+
+{% endmacro %}
+
+
+{% macro create_watermark_schema() %}
+
+  create schema if not exists {{ var('watermark_database', target.database) }}.{{ generate_schema_name(custom_schema_name=var('watermark_schema', 'public'), node=node) }}
 
 {% endmacro %}
 

@@ -6,6 +6,14 @@
     {% set upstream_nodes = [] %}
   {% endif %}
   
+  {# create high watermark table if it doesn't exist #}
+  {%- set hwm_relation = adapter.get_relation(
+      database=var('watermark_database', target.database),
+      schema=generate_schema_name(custom_schema_name=var('watermark_schema', 'public'), node=node),
+      identifier=var('watermark_table', 'dbt_high_watermark')) is not none -%}
+  {% if not hwm_relation %}
+    {{ create_hwm_table() }}
+  {% endif %}
   
   {% if flags.FULL_REFRESH %}
     delete from {{ var('watermark_database', target.database) }}.{{ generate_schema_name(custom_schema_name=var('watermark_schema', 'public'), node=node) }}.{{ var('watermark_table', 'dbt_high_watermark') }}

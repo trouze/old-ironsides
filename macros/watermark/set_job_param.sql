@@ -1,15 +1,7 @@
 {% macro set_job_param(success=false) %}
 
-  {# create high watermark table if it doesn't exist #}
-  {%- set hwm_relation = adapter.get_relation(
-      database=var('watermark_database', target.database),
-      schema=generate_schema_name(custom_schema_name=var('watermark_schema', 'public'), node=node),
-      identifier=var('watermark_table', 'dbt_high_watermark')) is not none -%}
-  {% if not hwm_relation %}
-    {{ create_hwm_table() }}
-  {% endif %}
-
   {# create temporary high watermark table(s) #}
+  {{ create_watermark_schema() }}
   {{ create_tmp_hwm_table() }}
 
   {% if execute %}

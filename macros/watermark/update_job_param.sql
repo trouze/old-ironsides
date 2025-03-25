@@ -1,4 +1,4 @@
-{% macro update_job_param(success) %}
+{% macro update_job_param(success=true) %}
 
   {% if execute %}
     {% set upstream_nodes = graph.nodes[model.unique_id].depends_on.nodes %}
@@ -8,7 +8,7 @@
   
   
   {% if flags.FULL_REFRESH %}
-    delete from {{ target.database }}.{{ var('watermark_schema', 'public') }}.{{ var('watermark_table', 'dbt_high_watermark') }}
+    delete from {{ var('watermark_database', target.database) }}.{{ generate_schema_name(custom_schema_name=var('watermark_schema', 'public'), node=node) }}.{{ var('watermark_table', 'dbt_high_watermark') }}
     where target_name = '{{ model.unique_id }}';
   {% endif %}
   
@@ -25,14 +25,14 @@
     {% endif %}
 
     {% set job_param_sql %}
-      insert into {{ target.database }}.{{ var('watermark_schema', 'public') }}.{{ var('watermark_table', 'dbt_high_watermark') }} (target_name, source_name, invocation_id, complete, source_timestamp)
+      insert into {{ var('watermark_database', target.database) }}.{{ generate_schema_name(custom_schema_name=var('watermark_schema', 'public'), node=node) }}.{{ var('watermark_table', 'dbt_high_watermark') }} (target_name, source_name, invocation_id, complete, source_timestamp)
       select
         target_name,
         source_name,
         invocation_id,
         {{ success }} as complete,
         source_timestamp
-      from {{ target.database }}.public.hwm_tmp_{{ thread_id.split(' ')[0] | replace('-', '_') | lower }}
+      from {{ var('watermark_database', target.database) }}.{{ generate_schema_name(custom_schema_name=var('watermark_schema', 'public'), node=node) }}.hwm_tmp_{{ thread_id.split(' ')[0] | replace('-', '_') | lower }}
       where complete = false
         and source_name = '{{ source_name }}'
         and target_name = '{{ model.unique_id }}'

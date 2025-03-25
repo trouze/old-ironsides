@@ -5,8 +5,9 @@
         target_name text not null,
         source_name text not null,
         invocation_id text not null,
+        invocation_time timestamp_ntz(9) not null,
         complete boolean,
-        source_timestamp timestamp_ntz(9) not null)
+        hwm_timestamp timestamp_ntz(9) not null)
   {% endset %}
 
   {% do run_query(create_hwm_table) %}
@@ -30,8 +31,9 @@
     target_name text not null,
     source_name text not null,
     invocation_id text not null,
+    invocation_time timestamp_ntz(9) not null,
     complete boolean,
-    source_timestamp timestamp_ntz(9) not null
+    hwm_timestamp timestamp_ntz(9) not null
     )
   {% endset %}
   {% do run_query(create_tmp_hwm_table) %}
@@ -56,14 +58,14 @@
   {% endif %}
   {% if current %}
 
-    select max(source_timestamp) from {{ var('watermark_database', target.database) }}.{{ generate_schema_name(custom_schema_name=var('watermark_schema', 'public'), node=node) }}.hwm_tmp_{{ thread_id.split(' ')[0] | replace('-', '_') | lower }}
+    select max(hwm_timestamp) from {{ var('watermark_database', target.database) }}.{{ generate_schema_name(custom_schema_name=var('watermark_schema', 'public'), node=node) }}.hwm_tmp_{{ thread_id.split(' ')[0] | replace('-', '_') | lower }}
     where target_name = '{{ model.unique_id }}'
       and source_name = '{{ source_unique_id }}'
 
     
   {% else %}
 
-    select max(source_timestamp) from {{ var('watermark_database', target.database) }}.{{ generate_schema_name(custom_schema_name=var('watermark_schema', 'public'), node=node) }}.{{ var('watermark_table', 'dbt_high_watermark') }}
+    select max(hwm_timestamp) from {{ var('watermark_database', target.database) }}.{{ generate_schema_name(custom_schema_name=var('watermark_schema', 'public'), node=node) }}.{{ var('watermark_table', 'dbt_high_watermark') }}
     where target_name = '{{ model.unique_id }}'
       and source_name = '{{ source_unique_id }}'
       and complete = true

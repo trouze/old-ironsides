@@ -51,15 +51,17 @@
         target_name,
         source_name,
         invocation_id,
+        invocation_time,
         complete,
-        source_timestamp
+        hwm_timestamp
       )
       select
         '{{ model.unique_id }}' as target_name,
         '{{ upstream_node }}' as source_name,
         '{{ invocation_id }}' as invocation_id,
+        current_timestamp as invocation_time,
         {{ success }} as complete,
-        max({{ hwm_field }}) as source_timestamp
+        max({{ hwm_field }}) as hwm_timestamp
       from {{ upstream_node_relation }}
     {% endset %}
     {% do run_query(job_param_sql) %}

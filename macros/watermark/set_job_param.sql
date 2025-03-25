@@ -3,12 +3,12 @@
   {# create high watermark table if it doesn't exist #}
   {%- set hwm_relation = adapter.get_relation(
       database=var('watermark_database', target.database),
-      schema=var('watermark_schema', 'public'),
+      schema=generate_schema_name(custom_schema_name=var('watermark_schema', 'public'), node),
       identifier=var('watermark_table', 'dbt_high_watermark')) is not none -%}
   {% if not hwm_relation %}
     {{ create_hwm_table() }}
   {% endif %}
-  
+
   {# create temporary high watermark table(s) #}
   {{ create_tmp_hwm_table() }}
 
@@ -55,7 +55,7 @@
     {% endif %}
 
     {% set job_param_sql %}
-      insert into {{ var('watermark_database', target.database) }}.{{ var('watermark_schema', 'public') }}.hwm_tmp_{{ thread_id.split(' ')[0] | replace('-', '_') | lower }} (
+      insert into {{ var('watermark_database', target.database) }}.{{ generate_schema_name(custom_schema_name=var('watermark_schema', 'public'), node) }}.hwm_tmp_{{ thread_id.split(' ')[0] | replace('-', '_') | lower }} (
         target_name,
         source_name,
         invocation_id,

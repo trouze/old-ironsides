@@ -1,19 +1,25 @@
 {% macro create_hwm_table() %}
 
-  create table {{ var('watermark_database', target.database) }}.{{ generate_schema_name(custom_schema_name=var('watermark_schema', 'public'), node=node) }}.{{ var('watermark_table', 'dbt_high_watermark') }} if not exists (
-    target_name text not null,
-    source_name text not null,
-    invocation_id text not null,
-    complete boolean,
-    source_timestamp timestamp_ntz(9) not null)
+  {% set create_hwm_table %}
+    create table {{ var('watermark_database', target.database) }}.{{ generate_schema_name(custom_schema_name=var('watermark_schema', 'public'), node=node) }}.{{ var('watermark_table', 'dbt_high_watermark') }} if not exists (
+        target_name text not null,
+        source_name text not null,
+        invocation_id text not null,
+        complete boolean,
+        source_timestamp timestamp_ntz(9) not null)
+  {% endset %}
 
+  {% do run_query(create_hwm_table) %}
 {% endmacro %}
 
 
 {% macro create_watermark_schema() %}
 
-  create schema if not exists {{ var('watermark_database', target.database) }}.{{ generate_schema_name(custom_schema_name=var('watermark_schema', 'public'), node=node) }}
+  {% set create_watermark_schema %}
+    create schema if not exists {{ var('watermark_database', target.database) }}.{{ generate_schema_name(custom_schema_name=var('watermark_schema', 'public'), node=node) }}
+  {% endset %}
 
+  {% do run_query(create_watermark_schema) %}
 {% endmacro %}
 
 

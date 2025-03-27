@@ -2,6 +2,16 @@
 
   {# create temporary high watermark table(s) #}
   {{ create_watermark_schema() }}
+
+  {# create high watermark table if it doesn't exist #}
+  {%- set hwm_relation = adapter.get_relation(
+      database=var('watermark_database', target.database),
+      schema=generate_schema_name(custom_schema_name=var('watermark_schema', 'public'), node=node),
+      identifier=var('watermark_table', 'dbt_high_watermark')) is not none -%}
+  {% if not hwm_relation %}
+    {{ create_hwm_table() }}
+  {% endif %}
+
   {{ create_tmp_hwm_table() }}
 
   {% if execute %}
@@ -51,15 +61,17 @@
         target_name,
         source_name,
         invocation_id,
+        invocation_time,
         complete,
-        source_timestamp
+        hwm_timestamp
       )
       select
         '{{ model.unique_id }}' as target_name,
         '{{ upstream_node }}' as source_name,
         '{{ invocation_id }}' as invocation_id,
+        current_timestamp as invocation_time,
         {{ success }} as complete,
-        max({{ hwm_field }}) as source_timestamp
+        max({{ hwm_field }}) as hwm_timestamp
       from {{ upstream_node_relation }}
     {% endset %}
     {% do run_query(job_param_sql) %}

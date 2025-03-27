@@ -5,19 +5,14 @@
   {% else %}
     {% set upstream_nodes = [] %}
   {% endif %}
-  
-  {# create high watermark table if it doesn't exist #}
-  {%- set hwm_relation = adapter.get_relation(
-      database=var('watermark_database', target.database),
-      schema=generate_schema_name(custom_schema_name=var('watermark_schema', 'public'), node=node),
-      identifier=var('watermark_table', 'dbt_high_watermark')) is not none -%}
-  {% if not hwm_relation %}
-    {{ create_hwm_table() }}
-  {% endif %}
+
   
   {% if flags.FULL_REFRESH %}
-    delete from {{ var('watermark_database', target.database) }}.{{ generate_schema_name(custom_schema_name=var('watermark_schema', 'public'), node=node) }}.{{ var('watermark_table', 'dbt_high_watermark') }}
-    where target_name = '{{ model.unique_id }}';
+    {% set delete_target_hwm_rows %}
+        delete from {{ var('watermark_database', target.database) }}.{{ generate_schema_name(custom_schema_name=var('watermark_schema', 'public'), node=node) }}.{{ var('watermark_table', 'dbt_high_watermark') }}
+        where target_name = '{{ model.unique_id }}';
+    {% endset %}
+    {% set delete_hwm_rows = run_query(delete_target_hwm_rows) %}
   {% endif %}
   
   {% for upstream_node in upstream_nodes %}
@@ -33,18 +28,19 @@
     {% endif %}
 
     {% set job_param_sql %}
-      insert into {{ var('watermark_database', target.database) }}.{{ generate_schema_name(custom_schema_name=var('watermark_schema', 'public'), node=node) }}.{{ var('watermark_table', 'dbt_high_watermark') }} (target_name, source_name, invocation_id, complete, source_timestamp)
+      insert into {{ var('watermark_database', target.database) }}.{{ generate_schema_name(custom_schema_name=var('watermark_schema', 'public'), node=node) }}.{{ var('watermark_table', 'dbt_high_watermark') }} (target_name, source_name, invocation_id, invocation_time, complete, hwm_timestamp)
       select
         target_name,
         source_name,
         invocation_id,
+        invocation_time,
         {{ success }} as complete,
-        source_timestamp
+        hwm_timestamp
       from {{ var('watermark_database', target.database) }}.{{ generate_schema_name(custom_schema_name=var('watermark_schema', 'public'), node=node) }}.hwm_tmp_{{ thread_id.split(' ')[0] | replace('-', '_') | lower }}
       where complete = false
         and source_name = '{{ source_name }}'
         and target_name = '{{ model.unique_id }}'
-      order by source_timestamp desc
+      order by hwm_timestamp desc
       limit 1;
     {% endset %}
     

@@ -18,3 +18,5 @@ models:
           last_model_run_field: last_model_run
           error_after: 24
           time_part: hour
+  - name: hwm_model
+    description: ""

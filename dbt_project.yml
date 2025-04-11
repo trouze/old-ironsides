@@ -8,7 +8,7 @@ config-version: 2
 
 # Set dbt Cloud Info
 dbt-cloud:
-  project-id: 376310
+  project-id: 394015
 
 # This setting configures which "profile" dbt uses for this project.
 profile: 'sa_snowflake'

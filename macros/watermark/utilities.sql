@@ -65,21 +65,18 @@
 {% macro snowflake__get_hwm(current, relation_obj) %}
 
   {%- if current -%}
+    select max(hwm_timestamp)
+    from {{ get_hwm_tmp_fqn() }}
+    where target_name = '{{ model.unique_id }}'
+      and source_name ilike '{{ relation_obj }}'
+  {%- else -%}
     select coalesce(
       max(hwm_timestamp),
       '1900-01-01 00:00:00.000'
     )
-    from {{ get_hwm_tmp_fqn() }}
-    where target_name = '{{ model.unique_id }}'
-      and source_name ilike '{{ relation_obj }}'
-    
-  {%- else -%}
-
-    select max(hwm_timestamp)
     from {{ get_hwm_fqn() }}
     where target_name = '{{ model.unique_id }}'
       and source_name ilike '{{ relation_obj }}'
       and complete = true
-
   {%- endif -%}
 {% endmacro %}

@@ -9,7 +9,7 @@
   
   {% if flags.FULL_REFRESH %}
     {% set delete_target_hwm_rows %}
-        delete from {{ var('watermark_database', target.database) }}.{{ generate_schema_name(custom_schema_name=var('watermark_schema', 'public'), node=node) }}.{{ var('watermark_table', 'dbt_high_watermark') }}
+        delete from {{ get_hwm_fqn() }}
         where target_name = '{{ model.unique_id }}';
     {% endset %}
     {% set delete_hwm_rows = run_query(delete_target_hwm_rows) %}
@@ -20,15 +20,19 @@
     {% set source_node = graph.sources.get(upstream_node) %}
 
     {% if model_node and model_node.resource_type == 'model' %}
-      {% set source_name = model_node.unique_id %}
+      {% set source_name_db = model_node.database %}
+      {% set source_name_schema = model_node.schema %}
+      {% set source_name_alias = model_node.alias %}
 
     {% elif source_node and source_node.resource_type == 'source' %}
-      {% set source_name = source_node.unique_id %}
+      {% set source_name_db = source_node.database %}
+      {% set source_name_schema = source_node.schema %}
+      {% set source_name_alias = source_node.name %}
 
     {% endif %}
 
     {% set job_param_sql %}
-      insert into {{ var('watermark_database', target.database) }}.{{ generate_schema_name(custom_schema_name=var('watermark_schema', 'public'), node=node) }}.{{ var('watermark_table', 'dbt_high_watermark') }} (target_name, source_name, invocation_id, invocation_time, complete, hwm_timestamp)
+      insert into {{ get_hwm_fqn() }} (target_name, source_name, invocation_id, invocation_time, complete, hwm_timestamp)
       select
         target_name,
         source_name,
@@ -36,9 +40,9 @@
         invocation_time,
         {{ success }} as complete,
         hwm_timestamp
-      from {{ var('watermark_database', target.database) }}.{{ generate_schema_name(custom_schema_name=var('watermark_schema', 'public'), node=node) }}.hwm_tmp_{{ thread_id.split(' ')[0] | replace('-', '_') | lower }}
+      from {{ get_hwm_tmp_fqn() }}
       where complete = false
-        and source_name = '{{ source_name }}'
+        and source_name ilike '{{ source_name_db }}.{{ source_name_schema }}.{{ source_name_alias }}'
         and target_name = '{{ model.unique_id }}'
       order by hwm_timestamp desc
       limit 1;

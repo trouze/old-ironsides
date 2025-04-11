@@ -47,17 +47,8 @@
       {% set upstream_node_alias = source_node.identifier %}
     {% endif %}
 
-    {# Now we dynamically get the relation using ref() or source() #}
-    {% if model_node %}
-      {# Use ref for models #}
-      {% set upstream_node_relation = ref(model_node.name) %}
-    {% elif source_node %}
-      {# Use source for sources #}
-      {% set upstream_node_relation = source(source_node.source_name, source_node.name) %}
-    {% endif %}
-
     {% set job_param_sql %}
-      insert into {{ var('watermark_database', target.database) }}.{{ generate_schema_name(custom_schema_name=var('watermark_schema', 'public'), node=node) }}.hwm_tmp_{{ thread_id.split(' ')[0] | replace('-', '_') | lower }} (
+      insert into {{ get_hwm_tmp_fqn() }} (
         target_name,
         source_name,
         invocation_id,
@@ -67,12 +58,12 @@
       )
       select
         '{{ model.unique_id }}' as target_name,
-        '{{ upstream_node }}' as source_name,
+        '{{ upstream_node_db }}.{{ upstream_node_schema }}.{{ upstream_node_alias }}' as source_name,
         '{{ invocation_id }}' as invocation_id,
         current_timestamp as invocation_time,
         {{ success }} as complete,
         max({{ hwm_field }}) as hwm_timestamp
-      from {{ upstream_node_relation }}
+      from {{ upstream_node_db }}.{{ upstream_node_schema }}.{{ upstream_node_alias }}
     {% endset %}
     {% do run_query(job_param_sql) %}
   {% endfor %}

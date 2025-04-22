@@ -1,8 +1,17 @@
 {% macro generate_schema_name(custom_schema_name, node) -%}
 
     {%- set default_schema = target.schema -%}
+    {%- if env_var('DBT_CLOUD_RUN_REASON_CATEGORY','empty') == 'github_pull_request' -%}
+        {%- if custom_schema_name is none -%}
 
-    {%- if env_var('DBT_CLOUD_ENVIRONMENT_TYPE','empty') == 'empty' or env_var('DBT_CLOUD_ENVIRONMENT_TYPE') == 'staging' or env_var('DBT_CLOUD_ENVIRONMENT_TYPE') == 'prod' or var('schema_behavior') == 'deploy' -%}
+            {{ default_schema }}
+
+        {%- else -%}
+
+            {{ default_schema }}_{{ custom_schema_name | trim }}
+
+        {%- endif -%}
+    {%- elif env_var('DBT_CLOUD_ENVIRONMENT_TYPE','empty') == 'empty' or env_var('DBT_CLOUD_ENVIRONMENT_TYPE') == 'staging' or env_var('DBT_CLOUD_ENVIRONMENT_TYPE') == 'prod' -%}
         {%- if custom_schema_name is none -%}
 
             {{ default_schema }}
@@ -13,7 +22,7 @@
 
         {%- endif -%}
     
-    {%- elif env_var('DBT_CLOUD_ENVIRONMENT_TYPE') == 'dev' or target.name == 'dev' or target.name == 'ci' -%}
+    {%- elif env_var('DBT_CLOUD_ENVIRONMENT_TYPE') == 'dev' -%}
         {%- if custom_schema_name is none -%}
 
             {{ default_schema }}
@@ -23,6 +32,7 @@
             {{ default_schema }}_{{ custom_schema_name | trim }}
 
         {%- endif -%}
+ 
     {% else %}
         {%- if custom_schema_name is none -%}
 

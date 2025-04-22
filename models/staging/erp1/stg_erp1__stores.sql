@@ -1,6 +1,6 @@
 with source as (
     select *
-    from {{ source('jaffle_shop','raw_stores') }}
+    from {{ source('jaffle_erp1','raw_stores') }}
 ),
 renamed as (
     select

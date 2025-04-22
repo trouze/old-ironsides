@@ -10,7 +10,7 @@ renamed as (
         SUBTOTAL as subtotal,
         TAX_PAID as tax_paid,
         ORDER_TOTAL as order_total,
-        current_timestamp() as last_model_run
+        load_dts as meta_last_touch_dtm
     from source
 )
 select * from renamed

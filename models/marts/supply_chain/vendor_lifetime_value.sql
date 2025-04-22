@@ -1,12 +1,15 @@
 {{ config(
     hwm_field='meta_last_touch_dtm',
     materialized='incremental',
-    unique_key='customer_id'
+    unique_key='vendor_id'
 )}}
 
 with dim_vendors as (
   
-  select vendor_id from {{ ref('dim_vendors') }}
+  select
+    vendor_id,
+    meta_last_touch_dtm
+  from {{ ref('dim_vendors') }}
   {% if is_incremental() %}
   where meta_last_touch_dtm between ({{ get_previous_hwm(ref('dim_vendors')) }}) and ({{ get_current_hwm(ref('dim_vendors')) }})
   {% endif %}
@@ -15,7 +18,10 @@ with dim_vendors as (
 
 dim_vendors_pilot as (
 
-  select vendor_id from {{ ref('dim_vendors_pilot') }}
+  select
+    vendor_id,
+    meta_last_touch_dtm
+  from {{ ref('dim_vendors_pilot') }}
   {% if is_incremental() %}
   where meta_last_touch_dtm between ({{ get_previous_hwm(ref('dim_vendors_pilot')) }}) and ({{ get_current_hwm(ref('dim_vendors_pilot')) }})
   {% endif %}

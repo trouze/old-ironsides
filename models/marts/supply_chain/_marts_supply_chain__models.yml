@@ -1,17 +1,13 @@
 version: 2
 
 models:
-  - name: orders_by_customer
+  - name: vendor_lifetime_value
+  - name: orders_by_vendor
     description: ""
     group: mart
     access: public
-    data_tests:
-      - is_model_fresh:
-          last_model_run_field: last_model_run
-          error_after: 24
-          time_part: hour
     columns:
-      - name: customer_id
+      - name: vendor_id
         data_tests:
           - not_null
       - name: first_name
@@ -28,10 +24,10 @@ exposures:
       Did someone say "exponential growth"?
     
     depends_on:
-      - ref('orders_by_customer')
+      - ref('orders_by_vendor')
       
     owner:
-      name: Tyler from A8
+      name: Tyler from dbt
       email: data@jaffleshop.com
 
 groups:

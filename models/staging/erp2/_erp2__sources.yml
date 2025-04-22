@@ -1,0 +1,10 @@
+version: 2
+
+sources:
+  - name: jaffle_erp2
+    database: RAW
+    schema: trouze
+    tables:
+      - name: raw_vendors
+        identifier: raw_customers
+        loaded_at_field: LOAD_DTS

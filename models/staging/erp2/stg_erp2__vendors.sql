@@ -1,13 +1,12 @@
 with source as (
     select *
-    from {{ source('jaffle_shop','raw_supplies') }}
+    from {{ source('jaffle_erp2','raw_vendors') }}
 ),
 renamed as (
     select
-        ID as supply_id,
+        ID as vendor_id,
         NAME as name,
-        COST as cost,
-        SKU as product_id,
+        SIGNUP_DATE as signup_date,
         LOAD_DTS as load_dts,
         current_timestamp() as last_model_run
     from source

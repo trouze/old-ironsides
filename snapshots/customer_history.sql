@@ -9,6 +9,6 @@
     )
 }}
 
-select * from {{ source('jaffle_shop','raw_customers') }}
+select * from {{ source('jaffle_erp1','raw_vendors') }}
 
 {% endsnapshot %}

@@ -1,0 +1,12 @@
+version: 2
+
+models:
+  - name: fct_orders
+    description: ""
+  - name: dim_vendors
+    description: ""
+    config:
+      group: customers_group
+      access: public
+  - name: dim_vendors_pilot
+    description: ""

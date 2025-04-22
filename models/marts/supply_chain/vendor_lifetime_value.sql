@@ -1,40 +1,44 @@
 {{ config(
-    hwm_field='load_dts',
+    hwm_field='meta_last_touch_dtm',
     materialized='incremental',
     unique_key='customer_id'
 )}}
 
 with dim_vendors as (
   
-  select * from {{ ref('dim_vendors') }}
+  select vendor_id from {{ ref('dim_vendors') }}
   {% if is_incremental() %}
-  where load_dts between ({{ get_previous_hwm(ref('dim_vendors')) }}) and ({{ get_current_hwm(ref('dim_vendors')) }})
+  where meta_last_touch_dtm between ({{ get_previous_hwm(ref('dim_vendors')) }}) and ({{ get_current_hwm(ref('dim_vendors')) }})
   {% endif %}
 
 ),
 
 dim_vendors_pilot as (
 
-  select * from {{ ref('dim_vendors_pilot') }}
+  select vendor_id from {{ ref('dim_vendors_pilot') }}
   {% if is_incremental() %}
-  where load_dts between ({{ get_previous_hwm(ref('dim_vendors_pilot')) }}) and ({{ get_current_hwm(ref('dim_vendors_pilot')) }})
+  where meta_last_touch_dtm between ({{ get_previous_hwm(ref('dim_vendors_pilot')) }}) and ({{ get_current_hwm(ref('dim_vendors_pilot')) }})
   {% endif %}
 
-)
+),
 
 fct_orders as (
   select * from {{ ref('fct_orders') }}
 ),
 
+vendor_keys as (
+  select vendor_id from dim_vendors
+  union
+  select vendor_id from dim_vendors_pilot
+),
+
 final as (
-    select
-      o.ID,
-      o.customer as customer_id,
-      c.name,
-      o.ordered_at,
-      o.load_dts
-    from raw_orders o
-    left join stg_customers c
-      on o.customer = c.customer_id
+  select
+    vendor_keys.vendor_id as vendor_id,
+    sum(fct_orders.order_total) as lifetime_spend
+  from vendor_keys
+  left join fct_orders
+    on vendor_keys.vendor_id = fct_orders.vendor_id
 )
+
 select * from final

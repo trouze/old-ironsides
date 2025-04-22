@@ -1,6 +1,6 @@
 select
     order_id,
-    customer_id,
+    vendor_id,
     order_timestamp,
     store_id,
     subtotal,

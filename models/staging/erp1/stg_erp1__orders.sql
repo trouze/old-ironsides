@@ -4,7 +4,7 @@ with source as (
 renamed as (
     select
         ID as order_id,
-        CUSTOMER as customer_id,
+        CUSTOMER as vendor_id,
         ORDERED_AT as order_timestamp,
         STORE_ID as store_id,
         SUBTOTAL as subtotal,

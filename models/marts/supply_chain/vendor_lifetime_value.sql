@@ -45,6 +45,7 @@ final as (
   from vendor_keys
   left join fct_orders
     on vendor_keys.vendor_id = fct_orders.vendor_id
+  group by 1
 )
 
 select * from final

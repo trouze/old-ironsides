@@ -4,8 +4,7 @@
     unique_key='vendor_id'
 )}}
 
-with dim_vendors as (
-  
+with dim_vendors_keys as (
   select
     vendor_id,
     meta_last_touch_dtm
@@ -13,11 +12,9 @@ with dim_vendors as (
   {% if is_incremental() %}
   where meta_last_touch_dtm between ({{ get_previous_hwm(ref('dim_vendors')) }}) and ({{ get_current_hwm(ref('dim_vendors')) }})
   {% endif %}
-
 ),
 
-dim_vendors_pilot as (
-
+dim_vendors_pilot_keys as (
   select
     vendor_id,
     meta_last_touch_dtm
@@ -25,17 +22,24 @@ dim_vendors_pilot as (
   {% if is_incremental() %}
   where meta_last_touch_dtm between ({{ get_previous_hwm(ref('dim_vendors_pilot')) }}) and ({{ get_current_hwm(ref('dim_vendors_pilot')) }})
   {% endif %}
-
 ),
 
-fct_orders as (
-  select * from {{ ref('fct_orders') }}
+fct_orders_keys as (
+  select
+    vendor_id,
+    meta_last_touch_dtm
+  from {{ ref('fct_orders') }}
+  {% if is_incremental() %}
+  where meta_last_touch_dtm between ({{ get_previous_hwm(ref('fct_orders')) }}) and ({{ get_current_hwm(ref('fct_orders')) }})
+  {% endif %}
 ),
 
 vendor_keys as (
-  select vendor_id from dim_vendors
+  select vendor_id from dim_vendors_keys
   union
-  select vendor_id from dim_vendors_pilot
+  select vendor_id from dim_vendors_pilot_keys
+  union
+  select vendor_id from fct_orders_keys
 ),
 
 final as (
@@ -43,7 +47,7 @@ final as (
     vendor_keys.vendor_id as vendor_id,
     sum(fct_orders.order_total) as lifetime_spend
   from vendor_keys
-  left join fct_orders
+  left join {{ ref('fct_orders') }} fct_orders
     on vendor_keys.vendor_id = fct_orders.vendor_id
   group by 1
 )

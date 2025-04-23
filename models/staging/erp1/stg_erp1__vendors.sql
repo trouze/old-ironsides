@@ -6,8 +6,8 @@ renamed as (
     select
         ID as vendor_id,
         NAME as name,
-        SIGNUP_DATE as signup_date,
-        LOAD_DTS as meta_last_touch_dtm,
+        cast(SIGNUP_DATE as timestamp) as signup_date,
+        cast(LOAD_DTS as timestamp) as meta_last_touch_dtm,
         current_timestamp() as last_model_run
     from source
 )

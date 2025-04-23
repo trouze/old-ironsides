@@ -9,7 +9,7 @@ renamed as (
         TYPE as type,
         PRICE as price,
         DESCRIPTION as description,
-        load_dts as load_dts,
+        cast(load_dts as timestamp) as load_dts,
         current_timestamp() as last_model_run
     from source
 )

@@ -7,7 +7,7 @@ renamed as (
         ID as item_id,
         ORDER_ID as order_id,
         SKU as product_id,
-        LOAD_DTS as load_dts,
+        cast(LOAD_DTS as timestamp) as load_dts,
         current_timestamp() as last_model_run
     from source
 )

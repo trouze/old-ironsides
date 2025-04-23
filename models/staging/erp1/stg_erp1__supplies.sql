@@ -8,7 +8,7 @@ renamed as (
         NAME as name,
         COST as cost,
         SKU as product_id,
-        LOAD_DTS as load_dts,
+        cast(LOAD_DTS as timestamp) as load_dts,
         current_timestamp() as last_model_run
     from source
 )

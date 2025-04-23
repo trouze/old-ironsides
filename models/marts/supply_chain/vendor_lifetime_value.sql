@@ -45,7 +45,7 @@ vendor_keys as (
 final as (
   select
     vendor_keys.vendor_id as vendor_id,
-    sum(fct_orders.order_total) as lifetime_spend
+    coalesce(sum(fct_orders.order_total), 0) as lifetime_spend
   from vendor_keys
   left join {{ ref('fct_orders') }} fct_orders
     on vendor_keys.vendor_id = fct_orders.vendor_id

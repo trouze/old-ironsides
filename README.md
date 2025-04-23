@@ -12,15 +12,15 @@ name: my_bsx_project
 
 models:
   my_bsx_project:
-	  # this runs the necessary watermark hooks for every incremental model
+    # this runs the necessary watermark hooks for every incremental model
     +pre-hook: 
-	    - "{{ set_job_param() if config.get('materialized') == 'incremental' else '' }}"
+      - "{{ set_job_param() if config.get('materialized') == 'incremental' else '' }}"
     +post-hook:
-	    - "{{ update_job_param(success=true) if config.get('materialized') == 'incremental' else '' }}"
+      - "{{ update_job_param(success=true) if config.get('materialized') == 'incremental' else '' }}"
 
 # sets the schema and table name for your watermark table
 vars:
-	watermark_database: my_db # Optional: defaults to target.database
+  watermark_database: my_db # Optional: defaults to target.database
   watermark_schema: public # you can use "{{ env_var('DBT_WM_SCHEMA') }}" here to be env-aware
   watermark_table: dbt_high_watermark
 ```

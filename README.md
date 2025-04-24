@@ -94,11 +94,11 @@ At its core, the goal of this framework is to only ever process new or updated r
 
 As a principle, when we process incrementally we are using a timestamp stored that signifies the bound at which we grab new records afterwards. This means that we need to be careful about the way in which both these timestamps are defined. This problem is two-fold, the reliability of the timestamp in the source table matters, and the validity of the timestamp we store to use for the filtration with each additional invocation.
 
-### Losing Data due to
+### Losing Data
 
 Primarily this is about ensuring we only process new or updated records once and only once. In order to achieve this, we need to set both an upper and lower bound on our incremental logic such that every processing window is mutually exclusive and collectively exhaustive. This, as opposed to incremental processing logic that only defines logic to process records with a lower bound. 
 
-![Screenshot 2025-04-18 at 4.54.10 PM.png](attachment:152c2ec9-6aa1-4cf5-a3e3-5aa2a0e05172:Screenshot_2025-04-18_at_4.54.10_PM.png)
+<img width="852" alt="Screenshot 2025-04-23 at 9 49 25 AM" src="https://github.com/user-attachments/assets/7eacecb8-1b36-4b9e-89c3-8db53d08edf3" />
 
 Using a central watermark table allows us to store the actual time used to filter for records to process, rather than storing the most recent timestamp *of the source record* in the target table.
 
